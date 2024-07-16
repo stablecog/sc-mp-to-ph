@@ -40,18 +40,6 @@ func getPosthogClient() posthog.Client {
 		posthogApiKey = pR
 	}
 
-	var posthogPersonalApiKey string
-	if os.Getenv("POSTHOG_API_KEY") != "" {
-		posthogPersonalApiKey = os.Getenv("POSTHOG_API_KEY")
-	} else {
-		posthogApiKeyPrompt := promptui.Prompt{
-			Label: "Enter Posthog Personal API Key",
-			Mask:  '*',
-		}
-		pR, _ := posthogApiKeyPrompt.Run()
-		posthogPersonalApiKey = pR
-	}
-
 	// If in env, don't ask
 	var posthogEndpoint string
 	if os.Getenv("POSTHOG_ENDPOINT") != "" {
@@ -70,8 +58,7 @@ func getPosthogClient() posthog.Client {
 
 	// Create posthog client
 	posthogClient, err := posthog.NewWithConfig(posthogApiKey, posthog.Config{
-		Endpoint:       posthogEndpoint,
-		PersonalApiKey: posthogPersonalApiKey,
+		Endpoint: posthogEndpoint,
 	})
 	if err != nil {
 		color.Red("\nEncountered an error while creating Posthog client: %v", err)
