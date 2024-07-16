@@ -1,12 +1,12 @@
-# SC Mixpanel to Posthog Data Migrator
+# SC Mixpanel to PostHog Data Migrator
 
-A tool for easily migrating data from [Mixpanel](https://mixpanel.com/) to [Posthog](https://posthog.com) (self-hosted or cloud)
+A tool for easily migrating data from [Mixpanel](https://mixpanel.com/) to [PostHog](https://posthog.com) (self-hosted or cloud)
 
 ## Disclaimer
 
-This is **NOT an official tool**. We are not affiliated with Posthog or Mixpanel
+This is **NOT an official tool**. We are not affiliated with PostHog or Mixpanel
 
-However, if you are looking to migrate from Mixpanel to Posthog like we were - we hope you find this tool useful.
+However, if you are looking to migrate from Mixpanel to PostHog like we were - we hope you find this tool useful.
 
 ## Setup
 
@@ -29,25 +29,23 @@ MIXPANEL_API_URL
 
 You can also put these in `.env` for convenience.
 
-### Posthog
+### PostHog
 
-You will need the following from Posthog:
+You will need the following from PostHog:
 
 - Project API key
-- Personal API key
 - Endpoint URL
 
 You will be prompted in CLI for these, but can also set them in the environment:
 
 ```
 POSTHOG_PROJECT_KEY=
-POSTHOG_API_KEY=
 POSTHOG_ENDPOINT=
 ```
 
 ## **WARNING** Do not use this without reading this first.
 
-The mixpanel export API has no pagination, the CLI will prompt you for a date range (required by Mixpanel)
+The Mixpanel export API has no pagination, the CLI will prompt you for a date range (required by Mixpanel)
 
 If you have a very large data set, **do not try to get it all at once**
 
@@ -63,7 +61,7 @@ Download the latest [Release](https://github.com/stablecog/sc-mp-to-ph/releases)
 
 The best way we found to migrate data is to do the following.
 
-1. Disable GeoIP app (if enabled)
+1. Disable GeoIP app in PostHog (if enabled)
 2. Import events (see below)
 3. In Mixpanel UI, export all users and columns as CSV
 4. Import the users (see below)

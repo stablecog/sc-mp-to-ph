@@ -80,7 +80,7 @@ func (c *Mixpanel) Export() ([]MixpanelDataLine, error) {
 
 		// Some events have internal names in posthog
 		switch line.Event {
-		case "Pageview":
+		case "Pageview", "$mp_web_page_view":
 			formattedDataLine.Event = "$pageview"
 		default:
 			formattedDataLine.Event = line.Event
@@ -92,7 +92,11 @@ func (c *Mixpanel) Export() ([]MixpanelDataLine, error) {
 
 		for k, v := range line.Properties {
 			if k == "distinct_id" {
-				formattedDataLine.DistinctID = v.(string)
+				distinctID := v.(string)
+				if strings.HasPrefix(distinctID, "$device:") {
+					distinctID = strings.TrimPrefix(distinctID, "$device:")
+				}
+				formattedDataLine.DistinctID = distinctID
 			} else if k == "time" {
 				// Seconds since epoch to time.Time
 				formattedDataLine.Time = time.Unix(int64(v.(float64)), 0)
@@ -100,8 +104,20 @@ func (c *Mixpanel) Export() ([]MixpanelDataLine, error) {
 				switch k {
 				case "mp_lib":
 					formattedDataLine.Properties["$lib"] = fmt.Sprintf("%s-imported", v)
+				case "current_url_path":
+					formattedDataLine.Properties["$pathname"] = v
+				case "current_domain":
+					formattedDataLine.Properties["$host"] = v
+				case "$city":
+					formattedDataLine.Properties["$geoip_city_name"] = v
+				case "$region":
+					formattedDataLine.Properties["$geoip_subdivision_1_name"] = v
+				case "mp_country_code":
+					formattedDataLine.Properties["$geoip_country_code"] = v
+				case "current_page_title":
+					formattedDataLine.Properties["$title"] = v
 				// Do nothing with these
-				case "$mp_api_endpoint", "$mp_api_timestamp_ms", "mp_processing_time_ms":
+				case "insert_id", "current_url_protocol", "$mp_api_endpoint", "$mp_api_timestamp_ms", "mp_processing_time_ms":
 				default:
 					formattedDataLine.Properties[k] = v
 				}
