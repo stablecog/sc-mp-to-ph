@@ -90,6 +90,9 @@ func main() {
 	// They can optionally just identify users
 	csvFile := flag.String("users-csv-file", "", "Path to CSV file to import users")
 	showVersion := flag.Bool("version", false, "Print version and exit")
+	fromDateFlag := flag.String("from_date", "", "The start date (YYYY-MM-DD) for Mixpanel export")
+	toDateFlag := flag.String("to_date", "", "The end date (YYYY-MM-DD) for Mixpanel export")
+
 	flag.Parse()
 
 	if *showVersion {
@@ -200,40 +203,57 @@ func main() {
 
 	// ** Get Mixpanel date range ** //
 
-	color.Yellow("\nWARNING: If you have a large dataset, consider entering smaller date ranges at a time.")
-	color.Yellow("You may crash your machine if you try to export too much data at once.\n\n")
+	var fromDtResult, toDtResult string
+	var err error
 
-	// Prompt for from_date and to_date in the format 2006-01-02
-	fromDtPrompt := promptui.Prompt{
-		Label: "Enter from_date in the format YYYY-MM-DD",
-		Validate: func(input string) error {
-			// Validate date is in the format 2006-01-02
-			_, err := time.Parse("2006-01-02", input)
-			return err
-		},
-	}
-	fromDtResult, err := fromDtPrompt.Run()
-	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
-	}
-	to_date := promptui.Prompt{
-		Label: "Enter to_date in the format YYYY-MM-DD",
-		Validate: func(input string) error {
-			// Validate date is in the format 2006-01-02
-			_, err := time.Parse("2006-01-02", input)
-			return err
-		},
-	}
-	toDtResult, err := to_date.Run()
-	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
+	if *fromDateFlag != "" && *toDateFlag != "" {
+		// Use command-line arguments if provided
+		fromDtResult = *fromDateFlag
+		toDtResult = *toDateFlag
+	} else {
+		color.Yellow("\nWARNING: If you have a large dataset, consider entering smaller date ranges at a time.")
+		color.Yellow("You may crash your machine if you try to export too much data at once.\n\n")
+
+		// Prompt for from_date and to_date in the format 2006-01-02
+		fromDtPrompt := promptui.Prompt{
+			Label: "Enter from_date in the format YYYY-MM-DD",
+			Validate: func(input string) error {
+				// Validate date is in the format 2006-01-02
+				_, err := time.Parse("2006-01-02", input)
+				return err
+			},
+		}
+		fromDtResult, err = fromDtPrompt.Run()
+		if err != nil {
+			log.Fatal(err)
+			os.Exit(1)
+		}
+		toDtPrompt := promptui.Prompt{
+			Label: "Enter to_date in the format YYYY-MM-DD",
+			Validate: func(input string) error {
+				// Validate date is in the format 2006-01-02
+				_, err := time.Parse("2006-01-02", input)
+				return err
+			},
+		}
+		toDtResult, err = toDtPrompt.Run()
+		if err != nil {
+			log.Fatal(err)
+			os.Exit(1)
+		}
 	}
 
 	// Parse dates
-	fromDt, _ := time.Parse("2006-01-02", fromDtResult)
-	toDt, _ := time.Parse("2006-01-02", toDtResult)
+	fromDt, err := time.Parse("2006-01-02", fromDtResult)
+	if err != nil {
+		color.Red("Invalid from_date format. Please use YYYY-MM-DD.")
+		os.Exit(1)
+	}
+	toDt, err := time.Parse("2006-01-02", toDtResult)
+	if err != nil {
+		color.Red("Invalid to_date format. Please use YYYY-MM-DD.")
+		os.Exit(1)
+	}
 
 	posthogClient := getPosthogClient()
 	defer posthogClient.Close()
